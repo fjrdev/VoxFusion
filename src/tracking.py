@@ -70,6 +70,9 @@ class Tracking:
         print("******* tracking process started! *******")
         #import cv2
         
+        #TODO: use message_filters instead of threads!
+        # http://wiki.ros.org/message_filters#Time_Synchronizer
+        
         rgb_b = False
         depth_b = False
         
