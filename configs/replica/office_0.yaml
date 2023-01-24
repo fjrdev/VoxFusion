@@ -8,7 +8,7 @@ hard_realtime: False
 
 data_specs:
   data_path: '/mnt/nas_8/datasets/voxslam/Replica/office0'
-  max_depth: 10
+  max_depth: 55
 
 criteria:
   rgb_weight: 1
@@ -21,7 +21,7 @@ tracker_specs:
   # end_frame: 1799
 
 mapper_specs:
-  voxel_size: 0.2
+  voxel_size: 0.01
   # step_size: 0.01
 
 debug_args:

@@ -1,0 +1,15 @@
+(myenv) richterfr@G27WS0011-LINUX:/mnt/ceph/tco/TCO-Students/Homes/richterfr/catkin_ws/src/VoxFusion/Vox-Fusion$ python demo/run.py configs/replica/room_0.yaml
+Traceback (most recent call last):
+  File "demo/run.py", line 8, in <module>
+    from voxslam import VoxSLAM
+  File "/mnt/ceph/tco/TCO-Students/Homes/richterfr/catkin_ws/src/VoxFusion/Vox-Fusion/src/voxslam.py", line 8, in <module>
+    from mapping import Mapping
+  File "/mnt/ceph/tco/TCO-Students/Homes/richterfr/catkin_ws/src/VoxFusion/Vox-Fusion/src/mapping.py", line 15, in <module>
+    torch.classes.load_library(
+  File "/mnt/ceph/tco/TCO-Students/Homes/richterfr/miniconda3/envs/myenv/lib/python3.8/site-packages/torch/_classes.py", line 48, in load_library
+    torch.ops.load_library(path)
+  File "/mnt/ceph/tco/TCO-Students/Homes/richterfr/miniconda3/envs/myenv/lib/python3.8/site-packages/torch/_ops.py", line 255, in load_library
+    ctypes.CDLL(path)
+  File "/mnt/ceph/tco/TCO-Students/Homes/richterfr/miniconda3/envs/myenv/lib/python3.8/ctypes/__init__.py", line 373, in __init__
+    self._handle = _dlopen(self._name, mode)
+OSError: /mnt/ceph/tco/TCO-Students/Homes/richterfr/catkin_ws/src/VoxFusion/Vox-Fusion/third_party/sparse_octree/build/lib.linux-x86_64-cpython-38/svo.cpython-38-x86_64-linux-gnu.so: undefined symbol: _ZN2at4_ops5zeros4callEN3c108ArrayRefINS2_6SymIntEEENS2_8optionalINS2_10ScalarTypeEEENS6_INS2_6LayoutEEENS6_INS2_6DeviceEEENS6_IbEE

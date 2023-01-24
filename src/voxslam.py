@@ -11,6 +11,8 @@ from tracking import Tracking
 from utils.import_util import get_dataset
 from visualization import Visualizer
 
+import rospy
+
 
 class VoxSLAM:
     def __init__(self, args):
@@ -30,16 +32,18 @@ class VoxSLAM:
         # keyframe buffer 
         self.kf_buffer = mp.Queue(maxsize=1)
         # data stream
-        self.data_stream = get_dataset(args)
+        #self.data_stream = get_dataset(args)
+        self.data_stream = []
         # tracker 
         self.tracker = Tracking(args, self.data_stream, self.logger, self.visualizer)
         # mapper
         self.mapper = Mapping(args, self.logger, self.visualizer)
         # initialize map with first frame
-        self.tracker.process_first_frame(self.kf_buffer)
+        #self.tracker.process_first_frame(self.kf_buffer)
         self.processes = []
 
     def start(self):
+        
         mapping_process = mp.Process(
             target=self.mapper.spin, args=(self.share_data, self.kf_buffer))
         mapping_process.start()
