@@ -14,10 +14,10 @@ def setup_seed(seed):
     random.seed(seed)
 
 if __name__ == '__main__':
+    print("start main")
     args = get_parser().parse_args()
     if hasattr(args, 'seeding'):
         setup_seed(args.seeding)
-
     slam = VoxSLAM(args)
     slam.start()
     slam.wait_child_processes()

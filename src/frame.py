@@ -42,10 +42,10 @@ class RGBDFrame(nn.Module):
         h = self.h if h == None else h
         if K is None:
             K = np.eye(3)
-            K[0, 0] = self.K[0] * w / self.w
-            K[1, 1] = self.K[1] * h / self.h
-            K[0, 2] = self.K[2] * w / self.w
-            K[1, 2] = self.K[3] * h / self.h
+            K[0, 0] = self.K[0, 0] * w / self.w
+            K[1, 1] = self.K[1, 1] * h / self.h
+            K[0, 2] = self.K[0, 2] * w / self.w
+            K[1, 2] = self.K[1, 2] * h / self.h
         ix, iy = torch.meshgrid(
             torch.arange(w), torch.arange(h), indexing='xy')
         rays_d = torch.stack(
@@ -63,6 +63,7 @@ class RGBDFrame(nn.Module):
 
     @torch.no_grad()
     def get_points(self):
+        #TODO: find required size of depth array
         vmap = self.rays_d * self.depth[..., None]
         return vmap[self.depth > 0].reshape(-1, 3)
 

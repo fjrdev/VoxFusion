@@ -1,6 +1,8 @@
 base_config: configs/replica/replica.yaml
 
 exp_name: replica/office0
+decoder: nrgbd
+
 
 # seeding: 42
 enable_vis: False
@@ -28,4 +30,4 @@ debug_args:
   verbose: false
   save_data: false
   render_freq: 50
-  render_res: [200, 160]
+  render_res: [540, 960]

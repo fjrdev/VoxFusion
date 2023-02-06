@@ -48,4 +48,4 @@ debug_args:
   save_data: false
   # mesh_freq: 100
   render_freq: 50
-  render_res: [200, 160]
+  render_res: [540, 960]

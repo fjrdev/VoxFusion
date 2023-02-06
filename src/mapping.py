@@ -85,17 +85,20 @@ class Mapping:
             if not kf_buffer.empty():
                 tracked_frame = kf_buffer.get()
                 # self.create_voxels(tracked_frame)
-
+                print("1")
                 if not self.initialized:
                     if self.mesher is not None:
                         self.mesher.rays_d = tracked_frame.get_rays()
                     self.create_voxels(tracked_frame)
                     self.insert_keyframe(tracked_frame)
+                    print("2")
                     while kf_buffer.empty():
+                        print("3")
                         self.do_mapping(share_data)
                         # self.update_share_data(share_data, tracked_frame.stamp)
                     self.initialized = True
                 else:
+                    print("4") 
                     self.do_mapping(share_data, tracked_frame)
                     self.create_voxels(tracked_frame)
                     # if (tracked_frame.stamp - self.current_keyframe.stamp) > 50:
@@ -143,6 +146,7 @@ class Mapping:
             update_pose=True,
             update_decoder=True
     ):
+        print("IN MAPPING")
         # self.map.create_voxels(self.keyframe_graph[0])
         self.decoder.train()
         optimize_targets = self.select_optimize_targets(tracked_frame)
@@ -171,7 +175,6 @@ class Mapping:
         # sleep(0.01)
 
     def select_optimize_targets(self, tracked_frame=None):
-        # TODO: better ways
         targets = []
         selection_method = 'random'
         if len(self.keyframe_graph) <= self.window_size:
@@ -187,6 +190,7 @@ class Mapping:
         return targets
 
     def update_share_data(self, share_data, frameid=None):
+        print("UPDATE SHARED DATA")
         share_data.decoder = deepcopy(self.decoder).cpu()
         tmp_states = {}
         for k, v in self.map_states.items():
