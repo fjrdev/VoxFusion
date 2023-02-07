@@ -84,6 +84,7 @@ class Mapping:
             # torch.cuda.empty_cache()
             if not kf_buffer.empty():
                 tracked_frame = kf_buffer.get()
+                print("tracked_frame: ", tracked_frame.rgb)
                 # self.create_voxels(tracked_frame)
                 print("1")
                 if not self.initialized:
@@ -121,6 +122,7 @@ class Mapping:
 
                 if self.save_data_freq > 0 and (tracked_frame.stamp + 1) % self.save_data_freq == 0:
                     self.save_debug_data(tracked_frame)
+                # free lock for tracking process
             elif share_data.stop_mapping:
                 break
 
@@ -146,7 +148,7 @@ class Mapping:
             update_pose=True,
             update_decoder=True
     ):
-        print("IN MAPPING")
+        print("DOING MAPPING")
         # self.map.create_voxels(self.keyframe_graph[0])
         self.decoder.train()
         optimize_targets = self.select_optimize_targets(tracked_frame)
@@ -177,7 +179,8 @@ class Mapping:
     def select_optimize_targets(self, tracked_frame=None):
         targets = []
         selection_method = 'random'
-        if len(self.keyframe_graph) <= self.window_size:
+        # print("keyframe graph len: ", self.keyframe_graph)
+        if len(self.keyframe_graph) <= int(self.window_size):
             targets = self.keyframe_graph[:]
         elif selection_method == 'random':
             targets = random.sample(self.keyframe_graph, self.window_size)
@@ -190,7 +193,6 @@ class Mapping:
         return targets
 
     def update_share_data(self, share_data, frameid=None):
-        print("UPDATE SHARED DATA")
         share_data.decoder = deepcopy(self.decoder).cpu()
         tmp_states = {}
         for k, v in self.map_states.items():
@@ -206,6 +208,7 @@ class Mapping:
         # self.update_grid_features()
 
     def create_voxels(self, frame):
+        print("create voxels") 
         points = frame.get_points().cuda()
         pose = frame.get_pose().cuda()
         points = points@pose[:3, :3].transpose(-1, -2) + pose[:3, 3]
@@ -294,8 +297,15 @@ class Mapping:
             kf[:3, 3] += offset
 
         verts = np.asarray(mesh.vertices)
+        # TODO: mulitply by 100 to rescale
         faces = np.asarray(mesh.triangles)
         color = np.asarray(mesh.vertex_colors)
+        
+        """
+        point_cloud = o3d.data.PLYPointCloud()
+        point_cloud.points = o3d.Vector3dVector(verts)
+        o3d.io.write_point_cloud("/tmp/voxfusion_point_cloud.pcd", point_cloud)
+        """
 
         self.logger.log_debug_data({
             "pose": pose,

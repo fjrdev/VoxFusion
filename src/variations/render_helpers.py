@@ -202,11 +202,27 @@ def render_rays(
 
     if profiler is not None:
         profiler.tick("ray_intersect")
+    print("DEBUG")
+    print("rays_o: ", rays_o)
+    print("\n")
+    print("rays_d: ", rays_d)
+    print("\n")
+    print("centers: ", centres)
+    print("\n")
+    print("voxel_size: ", voxel_size)
+    print("\n")
+    print("children: ", childrens)
+    print("\n")
+    print("DEBUG END")
     intersections, hits = ray_intersect(
         rays_o, rays_d, centres,
         childrens, voxel_size, max_voxel_hit, max_distance)
     if profiler is not None:
         profiler.tok("ray_intersect")
+    print("intersect: ", intersections)
+    print("\n")
+    print("hits: ", hits.sum())
+    print("DEBUG END")
     assert(hits.sum() > 0)
 
     ray_mask = hits.view(1, -1)

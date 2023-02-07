@@ -13,6 +13,7 @@ from variations.render_helpers import fill_in, render_rays, track_frame
 import message_filters
 from stereo_msgs.msg import DisparityImage
 from sensor_msgs.msg import Image
+import cv2
 
 
 class Tracking:
@@ -199,7 +200,7 @@ class Tracking:
             else:
                 #try:
                     # "*" unzips the np array
-                    sleep(5)
+                    sleep(5) 
                     current_frame = RGBDFrame(*data_in)
                     self.do_tracking(share_data, current_frame, kf_buffer)
 
@@ -222,9 +223,20 @@ class Tracking:
             focal_length = 805.110054612012
             baseline = 4.858120401781332
             f = lambda x: (focal_length * baseline) / x
-            depth_arr = f(disparity_arr)
+            depth_arr = f(disparity_arr) /100
+            #depth_arr = depth_arr / 1000
+            '''
             print(depth_arr.shape)
+            depth_img = depth_arr.copy()
+            depth_img = ((depth_img / np.max(depth_img))*255).astype(np.uint8)
+            print("max_depth: ", np.max(depth_arr))
+            print("mean_depth: ", np.mean(depth_arr))
+            print("min_depth: ", np.min(depth_arr))
+            cv2.imshow("depth", depth_img)
+            cv2.waitKey(0)
+            '''
             data_in[2] = torch.tensor(depth_arr)
+            
             pub()
         
         
@@ -275,7 +287,6 @@ class Tracking:
             pass
 
     def do_tracking(self, share_data, current_frame, kf_buffer):
-        #print("shared data in do_tracking(): ", type(share_data.decoder()))
         decoder = share_data.decoder.cuda()
         map_states = share_data.states
         for k, v in map_states.items():
