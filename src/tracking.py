@@ -71,108 +71,9 @@ class Tracking:
         kf_buffer.put(first_frame, block=True)
         self.last_frame = first_frame
         self.start_frame += 1
-
-    # -----
-    # THREADING VERSION
-    # -----
-    '''
-    def spin(self, share_data, kf_buffer):
-        
-        print("******* tracking process started! *******")
-        
-        rgb_b = False
-        depth_b = False
-        
-        frame_id = 0
-        rgb = np.zeros((540, 960, 3))
-        depth = np.zeros((540, 960, 1))
-        # hard-coded camera intrinsics
-        k = np.array([805.110054612012, 427.0664954600349, 804.744879684146, 269.1892972689079])
-        data_in = [frame_id, rgb, depth, k]
-        
-        def image(image_data):
-            # convert to np-array
-            image_arr = np.frombuffer(image_data.data, dtype=np.uint8).reshape(image_data.height, image_data.width, -1)
-            data_in[1] = image_arr
-            rgb_b = True
-    
-        def depth(depth_data):
-            # convert to np-array
-            disparity_arr = np.frombuffer(depth_data.image.data, dtype=np.float32).reshape(depth_data.image.height, depth_data.image.width, -1)
-    
-            # get depth information
-            focal_length = 805.110054612012
-            baseline = 4.858120401781332
-            f = lambda x: (focal_length * baseline) / x
-            depth_arr = f(disparity_arr)
-            data_in[2] = depth_arr
-            depth_b = True
-        
-        def listener():
-            rospy.init_node('dense_map', anonymous=True)
-            rospy.Subscriber("/stereo/disparity", DisparityImage, depth)
-            rospy.Subscriber("/stereo/left/image_raw", Image, image)
-            rospy.spin()
-        
-        def pub():
-            
-            while frame_id < 1029:
-                if frame_id == 1028: print("END!")
-                while not rgb_b and not depth_b:
-                    pass
-                
-                if frame_id == 0:
-                    self.process_first_frame(kf_buffer, data_in)
-                    rgb_b = False
-                    depth_b = False
-                    continue
-                rgb_b = False
-                depth_b = False
-                try:
-                    # "*" unzips the np array
-                    current_frame = RGBDFrame(*data_in)
-                    self.do_tracking(share_data, current_frame, kf_buffer)
-
-                    if self.render_freq > 0 and (frame_id + 1) % self.render_freq == 0:
-                        self.render_debug_images(share_data, current_frame)
-                except Exception as e:
-                    print("error in dataloading: ", e, f"skipping frame {frame_id}")
-                frame_id += 1
-                
-        publish_t = threading.Thread(target=pub)
-        publish_t.start()
-        data_t = threading.Thread(target=listener)
-        data_t.start()
-            
-        if share_data.stop_tracking:
-            break
-        try:
-            data_in = self.data_stream[frame_id]
-    
-            if self.show_imgs:
-                img = data_in[1]
-                depth = data_in[2]
-                cv2.imshow("img", img.cpu().numpy())
-                cv2.imshow("depth", depth.cpu().numpy())
-                cv2.waitKey(1)
-
-            # "*" unzips the np array
-            current_frame = RGBDFrame(*data_in)
-            self.do_tracking(share_data, current_frame, kf_buffer)
-
-            if self.render_freq > 0 and (frame_id + 1) % self.render_freq == 0:
-                self.render_debug_images(share_data, current_frame)
-        except Exception as e:
-                    print("error in dataloading: ", e, f"skipping frame {frame_id}")
-        
-        
-        share_data.stop_mapping = True
-        print("******* tracking process died *******")
-    '''  
-      
       
     # -----
-    # MESSAGE FILTER VERSION
+    # MESSAGE FILTER
     # -----
     
     def spin(self, share_data, kf_buffer):
@@ -187,49 +88,32 @@ class Tracking:
                           [0.0, 0.0, 1.0]])
         
         
-        
         def pub(data_in):
             
             if data_in[0] == 0:
                 self.process_first_frame(kf_buffer, data_in)
             else:
-                #try:
-                    # "*" unzips the np array
-                    #sleep(5)
-                #cv2.waitKey(1)
-                    current_frame = RGBDFrame(*data_in)
-                    self.do_tracking(share_data, current_frame, kf_buffer)
+                
+                current_frame = RGBDFrame(*data_in)
+                self.do_tracking(share_data, current_frame, kf_buffer)
 
-                    if self.render_freq > 0 and (frame_id + 1) % self.render_freq == 0:
-                        self.render_debug_images(share_data, current_frame)
-                #except Exception as e:
-                   # print("error in dataloading: ", e, f"skipping frame {frame_id}")
+                if self.render_freq > 0 and (frame_id + 1) % self.render_freq == 0:
+                    self.render_debug_images(share_data, current_frame)
+                
             
         
         def process(depth_data, image_data):
             
             nonlocal frame_id
                         
-            # convert to np-array
             image_arr = np.frombuffer(image_data.data, dtype=np.uint8).reshape(image_data.height, image_data.width, -1)
     
-            # convert to np-array
             disparity_arr = np.frombuffer(depth_data.image.data, dtype=np.float32).reshape(depth_data.image.height, depth_data.image.width)
-            # get depth information
             focal_length = 805.110054612012
             baseline = 4.858120401781332
             f = lambda x: (focal_length * baseline) / x
             depth_arr = f(disparity_arr) / 100
-            #depth_arr = depth_arr / 1000
             
-            #print(depth_arr.shape)
-            #depth_img = depth_arr.copy()
-            #depth_img = ((depth_img / np.max(depth_img))*255).astype(np.uint8)
-            #print("max_depth: ", np.max(depth_arr))
-            #print("mean_depth: ", np.mean(depth_arr))
-            #print("min_depth: ", np.min(depth_arr))
-            #cv2.imshow("depth", depth_img)
-            #cv2.waitKey(0)
             data_in = [frame_id, rgb, depth, k]
             data_in[0] = frame_id
             data_in[1] = torch.tensor(image_arr)
@@ -250,33 +134,8 @@ class Tracking:
             rospy.spin()
             
         listener()
-        '''
-        if share_data.stop_tracking:
-            break
-        try:
-            data_in = self.data_stream[frame_id]
-    
-            if self.show_imgs:
-                img = data_in[1]
-                depth = data_in[2]
-                cv2.imshow("img", img.cpu().numpy())
-                cv2.imshow("depth", depth.cpu().numpy())
-                cv2.waitKey(1)
-
-            # "*" unzips the np array
-            current_frame = RGBDFrame(*data_in)
-            self.do_tracking(share_data, current_frame, kf_buffer)
-
-            if self.render_freq > 0 and (frame_id + 1) % self.render_freq == 0:
-                self.render_debug_images(share_data, current_frame)
-        except Exception as e:
-                    print("error in dataloading: ", e, f"skipping frame {frame_id}")
-        '''
-        
-        
-        #share_data.stop_mapping = True
+        share_data.stop_mapping = True
         print("******* tracking process died *******")
-        
         
 
     def check_keyframe(self, check_frame, kf_buffer):
