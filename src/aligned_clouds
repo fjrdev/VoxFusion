@@ -1,0 +1,110 @@
+
+ #Point Density: measures the number of points in the cloud per unit volume
+#Completeness: measures how well the point cloud covers the underlying surface or object
+#Uniformity: measures the distribution of points in the cloud, and how evenly they are spaced
+#Accuracy: measures how closely the points in the cloud match the true shape or position of the underlying surface or object
+#Precision: measures the repeatability of the point cloud measurement process
+#Normality: measures how much the normals of the points in the cloud deviate from their expected orientation
+
+import open3d as o3d
+import argparse
+import numpy as np
+
+def evaluate_point_density(point_cloud):
+    """
+    Evaluates the point density of a point cloud.
+    """
+    return len(point_cloud.points) / point_cloud.get_axis_aligned_bounding_box().volume()
+
+def evaluate_completeness(point_cloud, ground_truth):
+    """
+    Evaluates the completeness of a point cloud by comparing it to the ground truth.
+    """
+    # Completeness
+    if ground_truth is not None:
+        distances = np.sqrt(((cloud.points[:, np.newaxis, :] - ground_truth.points) ** 2).sum(axis=2))
+        min_distances = np.min(distances, axis=0)
+        results['completeness'] = np.mean(min_distances < np.finfo(np.float32).eps)
+
+    return completeness
+
+def evaluate_accuracy(point_cloud, ground_truth):
+    """
+    Evaluates the accuracy of a point cloud by comparing it to the ground truth.
+    """
+    # Accuracy
+    if ground_truth is not None:
+        distances = np.sqrt(((cloud.points - ground_truth.points) ** 2).sum(axis=1))
+        results['accuracy'] = np.mean(distances)
+
+    return accuracy
+
+def evaluate_normality(point_cloud):
+    """
+    Evaluates the normality of a point cloud.
+    """
+    # Normality
+    normals = cloud.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+    results['normality'] = np.mean(np.abs(normals.dot(cloud.get_gravity_center() - cloud.points)))
+
+    return normality
+
+def evaluate_uniformity(point_cloud):
+    """
+    Evaluates the uniformity of a point cloud.
+    """
+    # Uniformity
+    results['uniformity'] = np.var(cloud.compute_nearest_neighbor_distance())
+
+    return uniformity
+
+def evaluate_precision(point_cloud, ground_truth):
+    """
+    Evaluates the precision of a point cloud by comparing it to the ground truth.
+    """
+    # Precision
+    if ground_truth is not None:
+        distances = np.sqrt(((cloud.points - ground_truth.points) ** 2).sum(axis=1))
+        results['precision'] = np.mean(np.less(distances, 0.01))
+
+    return precision
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="View two point clouds")
+    parser.add_argument("--map", type=str, help="VoxFusion/src/aligned_clouds/12-58_/output_source_cloud.pcd")
+    parser.add_argument("--ct", type=str, help="VoxFusion/src/aligned_clouds/12-58_/output_target_cloud.pcd")
+    args = parser.parse_args()
+
+    """
+    Load Map
+    """
+
+    map = o3d.io.read_point_cloud(args.map)
+
+    """
+    Load CT
+    """
+    ct = o3d.io.read_point_cloud(args.ct)
+
+    """
+    Evaluate Point Clouds
+    """
+    map_point_density = evaluate_point_density(map)
+    ct_point_density = evaluate_point_density(ct)
+    map_completeness = evaluate_completeness(map, ct)
+    ct_completeness = evaluate_completeness(ct, map)
+    map_accuracy = evaluate_accuracy(map, ct)
+    ct_accuracy = evaluate_accuracy(ct, map)
+    map_normality = evaluate_normality(map)
+    ct_normality = evaluate_normality(ct)
+    map_uniformity = evaluate_uniformity(map)
+    ct_uniformity = evaluate_uniformity(ct)
+    map_precision = evaluate_precision(map, ct)
+    ct_precision = evaluate_precision(ct, map)
+
+    """
+    Print results
+    """
+    print("Map Point Density:", map_point_density)
+    print("CT Point Density:", ct_point)
+

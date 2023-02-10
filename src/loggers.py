@@ -49,22 +49,32 @@ class BasicLogger:
         out_path = osp.join(self.backup_dir, "config.yaml")
         yaml.dump(config, open(out_path, 'w'))
 
-    def log_mesh(self, mesh, name="final_mesh.ply"):
-        out_path = osp.join(self.mesh_dir, name)
-        o3d.io.write_triangle_mesh(out_path, mesh)
+    def log_mesh(self, mesh, save_pcd, frame_id):
+        #out_path = osp.join(self.mesh_dir, name)
+        #o3d.io.write_triangle_mesh(out_path, mesh)
+        
+        #TODO: also log point cloud
+        verts = np.asarray(mesh.vertices) * 100
+        point_cloud = o3d.geometry.PointCloud()
+        point_cloud.points = o3d.utility.Vector3dVector(verts)
+        o3d.io.write_point_cloud("/mnt/ceph/tco/TCO-Students/Homes/richterfr/catkin_ws/src/VoxFusion/Vox-Fusion/src/pcds/" + save_pcd + "/" + save_pcd + "_" + frame_id + ".pcd", point_cloud)
+        
+        
 
-    def log_point_cloud(self, pcd, name="final_points.ply"):
+    def log_point_cloud(self, pcd, name="final_points.pcd"):
         out_path = osp.join(self.mesh_dir, name)
         o3d.io.write_point_cloud(out_path, pcd)
 
     def log_numpy_data(self, data, name, ind=None):
         if isinstance(data, torch.Tensor):
             data = data.detach().cpu().numpy()
+        np.save('frame.npy', data)
+        '''
         if ind is not None:
             np.save(osp.join(self.misc_dir, "{}-{:05d}.npy".format(name, ind)), data)
         else:
             np.save(osp.join(self.misc_dir, f"{name}.npy"), data)
-
+        '''
     def log_debug_data(self, data, idx):
         with open(os.path.join(self.misc_dir, f"scene_data_{idx}.pkl"), 'wb') as f:
             pickle.dump(data, f)

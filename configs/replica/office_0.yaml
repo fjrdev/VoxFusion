@@ -32,3 +32,4 @@ debug_args:
   save_data: false
   render_freq: 50
   render_res: [540, 960]
+  save_pcd: '_2020-07-20-12-12-58_'

@@ -1,6 +1,6 @@
 
 ssh g27ws0020
 
-srun -G 1 -C 16 python demo/run.py configs/replica/office_0.yaml
+srun -G 1 -c 16 python demo/run.py configs/replica/office_0.yaml
 
 

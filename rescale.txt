@@ -1,0 +1,8 @@
+origmap = o3d.io.read_point_cloud("src/ct/_2020-07-20-12-12-58.pcd")newmap = o3d.geometry.PointCloud()
+
+
+newmap = o3d.geometry.PointCloud()
+
+newmap.points = o3d.utility.Vector3dVector(np.asarray(map.points)/1000)
+
+o3d.io.write_point_cloud("newmap.pcd", newmap)

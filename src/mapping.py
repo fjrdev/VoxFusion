@@ -77,29 +77,44 @@ class Mapping:
         self.frame_poses = []
         self.depth_maps = []
         self.last_tracked_frame_id = 0
+        
+        self.save_pcd = args.debug_args["save_pcd"]
 
     def spin(self, share_data, kf_buffer):
         print("mapping process started!")
         while True:
             # torch.cuda.empty_cache()
+            
             if not kf_buffer.empty():
                 tracked_frame = kf_buffer.get()
-                print("tracked_frame: ", tracked_frame.rgb)
-                # self.create_voxels(tracked_frame)
-                print("1")
+                
+                #if tracked_frame.stamp > :
+                 #   self.logger.log_raw_image(tracked_frame.stamp, tracked_frame.rgb, tracked_frame.depth)
+                
+                #if tracked_frame.stamp == 
+                
+                if int(tracked_frame.stamp % 10) == 0 and tracked_frame.stamp != 0:
+                    mesh = self.extract_mesh(res=self.mesh_res, clean_mesh=False)
+                    self.logger.log_mesh(mesh, self.save_pcd, str(tracked_frame.stamp))
+                 
+
+                
+                #print("tracked_frame: ", tracked_frame.rgb)
+                # self.create_voxels(tracked_frame)s
+                #print("1")
                 if not self.initialized:
                     if self.mesher is not None:
                         self.mesher.rays_d = tracked_frame.get_rays()
                     self.create_voxels(tracked_frame)
                     self.insert_keyframe(tracked_frame)
-                    print("2")
+                    #print("2")
                     while kf_buffer.empty():
-                        print("3")
+                        #print("3")
                         self.do_mapping(share_data)
                         # self.update_share_data(share_data, tracked_frame.stamp)
                     self.initialized = True
                 else:
-                    print("4") 
+                    ##print("4") 
                     self.do_mapping(share_data, tracked_frame)
                     self.create_voxels(tracked_frame)
                     # if (tracked_frame.stamp - self.current_keyframe.stamp) > 50:
@@ -148,7 +163,7 @@ class Mapping:
             update_pose=True,
             update_decoder=True
     ):
-        print("DOING MAPPING")
+        #print("DOING MAPPING")
         # self.map.create_voxels(self.keyframe_graph[0])
         self.decoder.train()
         optimize_targets = self.select_optimize_targets(tracked_frame)
@@ -297,7 +312,6 @@ class Mapping:
             kf[:3, 3] += offset
 
         verts = np.asarray(mesh.vertices)
-        # TODO: mulitply by 100 to rescale
         faces = np.asarray(mesh.triangles)
         color = np.asarray(mesh.vertex_colors)
         

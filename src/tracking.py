@@ -176,9 +176,6 @@ class Tracking:
     # -----
     
     def spin(self, share_data, kf_buffer):
-        
-        #decoder = get_decoder(self.args)
-        #share_data.decoder = deepcopy(decoder).cpu()
                 
         print("******* tracking process started! *******")
         
@@ -188,19 +185,18 @@ class Tracking:
         k = torch.tensor([[805.110054612012, 0.0, 427.0664954600349], 
                           [0.0, 804.744879684146, 269.1892972689079],
                           [0.0, 0.0, 1.0]])
-        # k = torch.tensor([805.110054612012, 427.0664954600349, 804.744879684146, 269.1892972689079])
-        data_in = [frame_id, rgb, depth, k]
         
         
-        def pub():
+        
+        def pub(data_in):
             
-            nonlocal frame_id
-            if frame_id == 0:
+            if data_in[0] == 0:
                 self.process_first_frame(kf_buffer, data_in)
             else:
                 #try:
                     # "*" unzips the np array
-                    sleep(5) 
+                    #sleep(5)
+                #cv2.waitKey(1)
                     current_frame = RGBDFrame(*data_in)
                     self.do_tracking(share_data, current_frame, kf_buffer)
 
@@ -208,14 +204,14 @@ class Tracking:
                         self.render_debug_images(share_data, current_frame)
                 #except Exception as e:
                    # print("error in dataloading: ", e, f"skipping frame {frame_id}")
-            frame_id += 1
             
         
         def process(depth_data, image_data):
             
+            nonlocal frame_id
+                        
             # convert to np-array
             image_arr = np.frombuffer(image_data.data, dtype=np.uint8).reshape(image_data.height, image_data.width, -1)
-            data_in[1] = torch.tensor(image_arr)
     
             # convert to np-array
             disparity_arr = np.frombuffer(depth_data.image.data, dtype=np.float32).reshape(depth_data.image.height, depth_data.image.width)
@@ -223,21 +219,24 @@ class Tracking:
             focal_length = 805.110054612012
             baseline = 4.858120401781332
             f = lambda x: (focal_length * baseline) / x
-            depth_arr = f(disparity_arr) /100
+            depth_arr = f(disparity_arr) / 100
             #depth_arr = depth_arr / 1000
-            '''
-            print(depth_arr.shape)
-            depth_img = depth_arr.copy()
-            depth_img = ((depth_img / np.max(depth_img))*255).astype(np.uint8)
-            print("max_depth: ", np.max(depth_arr))
-            print("mean_depth: ", np.mean(depth_arr))
-            print("min_depth: ", np.min(depth_arr))
-            cv2.imshow("depth", depth_img)
-            cv2.waitKey(0)
-            '''
-            data_in[2] = torch.tensor(depth_arr)
             
-            pub()
+            #print(depth_arr.shape)
+            #depth_img = depth_arr.copy()
+            #depth_img = ((depth_img / np.max(depth_img))*255).astype(np.uint8)
+            #print("max_depth: ", np.max(depth_arr))
+            #print("mean_depth: ", np.mean(depth_arr))
+            #print("min_depth: ", np.min(depth_arr))
+            #cv2.imshow("depth", depth_img)
+            #cv2.waitKey(0)
+            data_in = [frame_id, rgb, depth, k]
+            data_in[0] = frame_id
+            data_in[1] = torch.tensor(image_arr)
+            data_in[2] = torch.tensor(depth_arr)
+            print("frame: ", data_in[0])
+            pub(data_in)
+            frame_id += 1
         
         
         def listener():
@@ -245,7 +244,7 @@ class Tracking:
             depth = message_filters.Subscriber('/stereo/disparity', DisparityImage)
             image = message_filters.Subscriber('/stereo/left/image_raw', Image)
             
-            ts = message_filters.TimeSynchronizer([depth, image], 10)
+            ts = message_filters.TimeSynchronizer([depth, image], 30)
             ts.registerCallback(process)
             print("INIT LISTENER")
             rospy.spin()
@@ -275,7 +274,7 @@ class Tracking:
         '''
         
         
-        share_data.stop_mapping = True
+        #share_data.stop_mapping = True
         print("******* tracking process died *******")
         
         
@@ -287,6 +286,7 @@ class Tracking:
             pass
 
     def do_tracking(self, share_data, current_frame, kf_buffer):
+        # print("DO TRACKING")
         decoder = share_data.decoder.cuda()
         map_states = share_data.states
         for k, v in map_states.items():
@@ -357,6 +357,7 @@ class Tracking:
             self.max_voxel_hit,
             self.max_distance,
             chunk_size=5000,
+            profiler=None,
             return_raw=True
         )
 

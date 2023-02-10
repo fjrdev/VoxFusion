@@ -1,11 +1,35 @@
 base_config: configs/replica/replica.yaml
 
 exp_name: replica/office3
+decoder: nrgbd
+
 
 # seeding: 42
 enable_vis: False
 hard_realtime: False
 
 data_specs:
-  data_path: '/mnt/dataset2/nice-slam/office3'
+  data_path: '/mnt/nas_8/datasets/voxslam/Replica/office1'
   max_depth: 10
+
+criteria:
+  rgb_weight: 1
+
+tracker_specs:
+  N_rays: 1024
+  # step_size: 0.01
+  # learning_rate: 0.01
+  # start_frame: 1099
+  # end_frame: 1799
+
+mapper_specs:
+  voxel_size: 0.2
+  #window_size: 518400
+  step_size: 0.1
+
+debug_args:
+  verbose: false
+  save_data: false
+  render_freq: 50
+  render_res: [540, 960]
+  save_pcd: 'new_35-33_'

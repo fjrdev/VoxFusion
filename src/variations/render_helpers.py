@@ -195,13 +195,14 @@ def render_rays(
         max_distance,
         chunk_size=10000,
         profiler=None,
-        return_raw=False
+        return_raw=False,
 ):
     centres = map_states["voxel_center_xyz"]
     childrens = map_states["voxel_structure"]
 
     if profiler is not None:
         profiler.tick("ray_intersect")
+    '''
     print("DEBUG")
     print("rays_o: ", rays_o)
     print("\n")
@@ -214,15 +215,19 @@ def render_rays(
     print("children: ", childrens)
     print("\n")
     print("DEBUG END")
+    '''
     intersections, hits = ray_intersect(
         rays_o, rays_d, centres,
         childrens, voxel_size, max_voxel_hit, max_distance)
     if profiler is not None:
         profiler.tok("ray_intersect")
-    print("intersect: ", intersections)
-    print("\n")
-    print("hits: ", hits.sum())
-    print("DEBUG END")
+    
+    #print("intersect: ", intersections)
+    #print("\n")
+    #print("hits: ", hits.sum())
+    #print(chunk_size)
+    #print("DEBUG END")
+    
     assert(hits.sum() > 0)
 
     ray_mask = hits.view(1, -1)

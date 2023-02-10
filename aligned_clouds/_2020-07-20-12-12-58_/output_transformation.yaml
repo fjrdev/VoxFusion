@@ -1,0 +1,13 @@
+transformation:
+  translation:
+    x: 0.03110025
+    y: 0.001656795
+    z: 0.01705848
+  rotation:
+    x: 0.5187452
+    y: -0.5050503
+    z: 0.5050191
+    w: -0.4699245
+  time:
+    timeSeconds: 1676032620.644286
+    timeNanoSeconds: 1676032620644316361
